@@ -2,7 +2,6 @@ package study.jwt.jwtexample.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +12,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,7 +31,8 @@ public class TokenProvider {
 
     public TokenProvider(@Value("${jwt.secret}") String secretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+        //this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.key = new SecretKeySpec(keyBytes, SignatureAlgorithm.HS512.getJcaName());
     }
 
     public TokenDto generateTokenDto(Authentication authentication) {
@@ -48,7 +49,7 @@ public class TokenProvider {
                 .setSubject(authentication.getName())       // payload "sub": "name"
                 .claim(AUTHORITIES_KEY, authorities)        // payload "auth": "ROLE_USER"
                 .setExpiration(accessTokenExpiresIn)        // payload "exp": 1516239022 (예시)
-                .signWith(key, SignatureAlgorithm.PS256)    // header "alg": "HS512"
+                .signWith(key, SignatureAlgorithm.HS256)    // header "alg": "HS512"
                 .compact();
 
         // Refresh Token 생성
