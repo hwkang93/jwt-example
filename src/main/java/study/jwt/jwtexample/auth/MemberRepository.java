@@ -2,7 +2,6 @@ package study.jwt.jwtexample.auth;
 
 import org.springframework.stereotype.Repository;
 
-import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

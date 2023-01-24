@@ -2,6 +2,7 @@ package study.jwt.jwtexample.jwt;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,8 +32,8 @@ public class TokenProvider {
 
     public TokenProvider(@Value("${jwt.secret}") String secretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        //this.key = Keys.hmacShaKeyFor(keyBytes);
-        this.key = new SecretKeySpec(keyBytes, SignatureAlgorithm.HS512.getJcaName());
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+        //this.key = new SecretKeySpec(keyBytes, SignatureAlgorithm.HS512.getJcaName());
     }
 
     public TokenDto generateTokenDto(Authentication authentication) {
@@ -55,7 +56,7 @@ public class TokenProvider {
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
                 .setExpiration(new Date(now + REFRESH_TOKEN_EXPIRE_TIME))
-                .signWith(key, SignatureAlgorithm.PS256)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         return TokenDto.builder()
