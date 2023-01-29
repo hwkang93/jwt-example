@@ -24,14 +24,21 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         // 유효한 자격증명을 제공하지 않고 접근하려 할때 401
         if (authException instanceof BadCredentialsException) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "아이디 또는 비밀번호가 일치하지 않습니다.");
+            setResponse(response, "아이디 또는 비밀번호가 일치하지 않습니다.");
         } else if (authException instanceof LockedException) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "사용자 계정이 잠겨 있습니다.");
+            setResponse(response, "사용자 계정이 잠겨 있습니다.");
         } else if (authException instanceof DisabledException) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "사용자 계정이 비활성화 되어 있습니다.");
+            setResponse(response, "사용자 계정이 비활성화 되어 있습니다.");
         } else {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증에 실패하였습니다.");
+            setResponse(response, "인증에 실패하였습니다.");
         }
         //response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
     }
+
+    private void setResponse(HttpServletResponse response, String message) throws IOException {
+        response.setContentType("application/text;charset=UTF-8");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().println(message);
+    }
+
 }

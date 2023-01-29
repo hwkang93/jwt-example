@@ -34,7 +34,7 @@ public class SwaggerConfig {
                 .securityContexts(Arrays.asList(securityContext())) // swagger에서 jwt 토큰값 넣기위한 설정
                 .securitySchemes(Arrays.asList(apiKey())) // swagger에서 jwt 토큰값 넣기위한 설정
                 .select()
-                .apis(Predicates.not(RequestHandlerSelectors.basePackage("study.jwt")))
+                .apis(RequestHandlerSelectors.any())
                 .paths(PathSelectors.regex("(?!/error.*).*"))
                 .build()
                 .useDefaultResponseMessages(false)
@@ -60,7 +60,7 @@ public class SwaggerConfig {
 
     // swagger에서 jwt 토큰값 넣기위한 설정
     private ApiKey apiKey() {
-        return new ApiKey("JWT", "Authorization", "header");
+        return new ApiKey("Json Web Token", "Authorization", "header");
     }
 
     private SecurityContext securityContext() {
@@ -71,6 +71,6 @@ public class SwaggerConfig {
         AuthorizationScope authorizationScope = new AuthorizationScope("global", "accessEverything");
         AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
         authorizationScopes[0] = authorizationScope;
-        return Arrays.asList(new SecurityReference("Bearer", authorizationScopes));
+        return Arrays.asList(new SecurityReference("Json Web Token", authorizationScopes));
     }
 }
