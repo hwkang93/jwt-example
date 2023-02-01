@@ -21,8 +21,8 @@ public class MemberRepository {
     @PostConstruct
     public void init() {
         String encryptPassword = passwordEncoder.encode("wavus1234!");
-        memberList.add(new Member(1L, "hwkang", encryptPassword, Authority.ROLE_USER));
-        memberList.add(new Member(1L, "geontest", encryptPassword, Authority.ROLE_USER));
+        memberList.add(new Member(1L, "hwkang", encryptPassword, Authority.ROLE_USER, "API KEY 1"));
+        memberList.add(new Member(1L, "geontest", encryptPassword, Authority.ROLE_ADMIN, "API KEY 2"));
     }
 
     public Optional<Member> findByEmail(String email) {

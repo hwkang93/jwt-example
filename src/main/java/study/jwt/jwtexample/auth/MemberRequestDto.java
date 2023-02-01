@@ -1,5 +1,6 @@
 package study.jwt.jwtexample.auth;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,14 +12,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @NoArgsConstructor
 public class MemberRequestDto {
 
+    @ApiModelProperty(value = "사용자 E-Mail 혹은 ID", example = "hwkang")
     private String email;
+
+    @ApiModelProperty(value = "사용자 비밀번호", example = "wavus1234!")
     private String password;
 
     public Member toMember(PasswordEncoder passwordEncoder) {
         return Member.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .authority(Authority.ROLE_USER)
                 .build();
     }
 

@@ -12,12 +12,13 @@ public class Member {
     private String email;
     private String password;
     private Authority authority;
+    private String apiKey;
 
     @Builder
-    public Member(Long id, String email, String password, Authority authority) {
+    public Member(Long id, String email, String password, Authority authority, String apiKey) {
         this.id = id;
         this.email = email;
         this.password = password;
-        this.authority = authority;
+        this.apiKey = apiKey;
     }
 }
