@@ -8,24 +8,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class TokenProvider {
-    private static final String AUTHORITIES_KEY = "auth";
+
+
+
     private static final String BEARER_TYPE = "Bearer";
+
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;            // 30분
+
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7;  // 7일
 
     private final Key key;
@@ -33,25 +33,37 @@ public class TokenProvider {
     public TokenProvider(@Value("${jwt.secret}") String secretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
-        //this.key = new SecretKeySpec(keyBytes, SignatureAlgorithm.HS512.getJcaName());
     }
 
     public TokenDto generateTokenDto(Authentication authentication) {
         // 권한들 가져오기
-        String authorities = authentication.getAuthorities().stream()
+        List<String> authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+                .collect(Collectors.toList());
 
         long now = (new Date()).getTime();
 
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
-        String accessToken = Jwts.builder()
+        /*String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())       // payload "sub": "name"
                 .claim(AUTHORITIES_KEY, authorities)        // payload "auth": "ROLE_USER"
                 .setExpiration(accessTokenExpiresIn)        // payload "exp": 1516239022 (예시)
-                .signWith(key, SignatureAlgorithm.HS256)    // header "alg": "HS512"
-                .compact();
+                .signWith(key, SignatureAlgorithm.HS256)    // header "alg": "HS256"
+                .compact();*/
+
+        JwtBuilder accessJwt = Jwts.builder()
+                .setSubject(authentication.getName())
+                .claim(SecurityUtil.AUTHORITIES_KEY, authorities.get(0))
+                .setExpiration(accessTokenExpiresIn)
+                .signWith(key, SignatureAlgorithm.HS256);
+
+        if(authorities.size() > 1) {
+            String apiKey = authorities.get(1);
+            accessJwt.claim(SecurityUtil.API_KEY, apiKey);
+        }
+
+        String accessToken = accessJwt.compact();
 
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
@@ -71,15 +83,19 @@ public class TokenProvider {
         // 토큰 복호화
         Claims claims = parseClaims(accessToken);
 
-        if (claims.get(AUTHORITIES_KEY) == null) {
+        if (claims.get(SecurityUtil.AUTHORITIES_KEY) == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
 
-        // 클레임에서 권한 정보 가져오기
-        Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+        String auth = claims.get(SecurityUtil.AUTHORITIES_KEY, String.class);
+        String apiKey = claims.get(SecurityUtil.API_KEY, String.class);
+
+        log.info("==================================================");
+        log.info("auth : " + auth);
+        log.info("api key : " + apiKey);
+        log.info("==================================================");
+
+        Collection<GrantedAuthority> authorities = SecurityUtil.createAuthoritiesBy(auth, apiKey);
 
         // UserDetails 객체를 만들어서 Authentication 리턴
         UserDetails principal = new User(claims.getSubject(), "", authorities);
