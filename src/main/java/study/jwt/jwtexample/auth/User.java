@@ -6,16 +6,15 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class Member {
+public class User {
 
     private Long id;
     private String email;
     private String password;
-    private Authority authority;
     private String apiKey;
 
     @Builder
-    public Member(Long id, String email, String password, Authority authority, String apiKey) {
+    public User(Long id, String email, String password, String apiKey) {
         this.id = id;
         this.email = email;
         this.password = password;

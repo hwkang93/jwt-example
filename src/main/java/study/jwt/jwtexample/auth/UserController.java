@@ -9,21 +9,21 @@ import org.springframework.web.bind.annotation.*;
 @Api(tags = "사용자 정보")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/members")
-public class MemberController {
-    private final MemberService memberService;
+@RequestMapping("/users")
+public class UserController {
+    private final UserService userService;
 
     @ApiOperation(value = "내 정보 조회", notes = "HELLO")
     @GetMapping("/me")
     @ResponseBody
-    public ResponseEntity<MemberResponseDto> getMyMemberInfo() {
-        return ResponseEntity.ok(memberService.getMyInfo());
+    public ResponseEntity<UserResponseDto> getMyInfo() {
+        return ResponseEntity.ok(userService.getMyInfo());
     }
 
     @ApiOperation(value = "email 로 조회")
     @GetMapping("/{email}")
     @ResponseBody
-    public ResponseEntity<MemberResponseDto> getMemberInfo(@PathVariable String email) {
-        return ResponseEntity.ok(memberService.getMemberInfo(email));
+    public ResponseEntity<UserResponseDto> getMemberInfo(@PathVariable String email) {
+        return ResponseEntity.ok(userService.getMemberInfo(email));
     }
 }

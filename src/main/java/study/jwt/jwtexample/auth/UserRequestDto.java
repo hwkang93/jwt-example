@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MemberRequestDto {
+public class UserRequestDto {
 
     @ApiModelProperty(value = "사용자 E-Mail 혹은 ID", example = "hwkang")
     private String email;
@@ -18,8 +18,8 @@ public class MemberRequestDto {
     @ApiModelProperty(value = "사용자 비밀번호", example = "wavus1234!")
     private String password;
 
-    public Member toMember(PasswordEncoder passwordEncoder) {
-        return Member.builder()
+    public User toMember(PasswordEncoder passwordEncoder) {
+        return User.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
                 .build();

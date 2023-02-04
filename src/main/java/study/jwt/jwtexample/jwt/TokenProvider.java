@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 @Component
 public class TokenProvider {
 
-
+    private static final String API_KEY = "auth";
 
     private static final String BEARER_TYPE = "Bearer";
 
@@ -45,30 +46,18 @@ public class TokenProvider {
 
         // Access Token 생성
         Date accessTokenExpiresIn = new Date(now + ACCESS_TOKEN_EXPIRE_TIME);
-        /*String accessToken = Jwts.builder()
+
+        String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())       // payload "sub": "name"
-                .claim(AUTHORITIES_KEY, authorities)        // payload "auth": "ROLE_USER"
+                .claim(API_KEY, authorities)                // payload "auth": "tmi~~~"
                 .setExpiration(accessTokenExpiresIn)        // payload "exp": 1516239022 (예시)
-                .signWith(key, SignatureAlgorithm.HS256)    // header "alg": "HS256"
-                .compact();*/
-
-        JwtBuilder accessJwt = Jwts.builder()
-                .setSubject(authentication.getName())
-                .claim(SecurityUtil.AUTHORITIES_KEY, authorities.get(0))
-                .setExpiration(accessTokenExpiresIn)
-                .signWith(key, SignatureAlgorithm.HS256);
-
-        if(authorities.size() > 1) {
-            String apiKey = authorities.get(1);
-            accessJwt.claim(SecurityUtil.API_KEY, apiKey);
-        }
-
-        String accessToken = accessJwt.compact();
+                .signWith(key, SignatureAlgorithm.HS256)    // header "alg": "HS512"
+                .compact();
 
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
                 .setExpiration(new Date(now + REFRESH_TOKEN_EXPIRE_TIME))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
 
         return TokenDto.builder()
@@ -83,19 +72,15 @@ public class TokenProvider {
         // 토큰 복호화
         Claims claims = parseClaims(accessToken);
 
-        if (claims.get(SecurityUtil.AUTHORITIES_KEY) == null) {
+        if (claims.get(API_KEY) == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
 
-        String auth = claims.get(SecurityUtil.AUTHORITIES_KEY, String.class);
-        String apiKey = claims.get(SecurityUtil.API_KEY, String.class);
-
-        log.info("==================================================");
-        log.info("auth : " + auth);
-        log.info("api key : " + apiKey);
-        log.info("==================================================");
-
-        Collection<GrantedAuthority> authorities = SecurityUtil.createAuthoritiesBy(auth, apiKey);
+        // 클레임에서 권한 정보 가져오기
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(claims.get(API_KEY).toString().split(","))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
 
         // UserDetails 객체를 만들어서 Authentication 리턴
         UserDetails principal = new User(claims.getSubject(), "", authorities);
