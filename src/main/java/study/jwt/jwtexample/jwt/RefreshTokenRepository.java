@@ -2,19 +2,17 @@ package study.jwt.jwtexample.jwt;
 
 import org.springframework.stereotype.Repository;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 public class RefreshTokenRepository {
-    Map<String, RefreshToken> memoryRefreshTokenRepository = new HashMap<>();
+    List<RefreshToken> refreshTokenList = new ArrayList<>();
 
     public Optional<RefreshToken> findByKey(String key) {
-        return Optional.of(new RefreshToken("test", "testBody"));
+        return refreshTokenList.stream().filter(refreshToken -> refreshToken.getKey().equals(key)).findFirst();
     }
 
-    public void save() {
-
+    public void save(RefreshToken refreshToken) {
+        refreshTokenList.add(refreshToken);
     }
 }
