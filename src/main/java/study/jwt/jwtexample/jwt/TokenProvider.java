@@ -37,10 +37,10 @@ public class TokenProvider {
     }
 
     public TokenDto generateTokenDto(Authentication authentication) {
-        // 권한들 가져오기
-        List<String> authorities = authentication.getAuthorities().stream()
+
+        String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+                .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime();
 
@@ -51,7 +51,7 @@ public class TokenProvider {
                 .setSubject(authentication.getName())       // payload "sub": "name"
                 .claim(API_KEY, authorities)                // payload "auth": "tmi~~~"
                 .setExpiration(accessTokenExpiresIn)        // payload "exp": 1516239022 (예시)
-                .signWith(key, SignatureAlgorithm.HS256)    // header "alg": "HS512"
+                .signWith(key, SignatureAlgorithm.HS512)    // header "alg": "HS512"
                 .compact();
 
         // Refresh Token 생성

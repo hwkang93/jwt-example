@@ -29,7 +29,7 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
 
-            //"/csrf",
+            "/csrf",
             //"/auth",
             "/auth/**",
             "/",
@@ -57,7 +57,7 @@ public class SecurityConfig {
                 .frameOptions()
                 .sameOrigin()
 
-                // 세션을 사용하지 않음 (Spring security default value is session)
+                // 세션을 사용하지 않음 (Spring Security 기본값 : 세션)
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -67,9 +67,9 @@ public class SecurityConfig {
                 .authorizeRequests(authorize -> authorize
                         .antMatchers(PERMIT_URL_ARRAY).permitAll().anyRequest().authenticated()
                 )
-                .formLogin(formLogin -> formLogin.loginPage("/login"))
                 .apply(new JwtSecurityConfig(tokenProvider));
 
         return http.build();
     }
+
 }
