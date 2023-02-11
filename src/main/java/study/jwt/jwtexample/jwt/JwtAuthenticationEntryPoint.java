@@ -5,6 +5,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         // 유효한 자격증명을 제공하지 않고 접근하려 할때 401
         if (authException instanceof BadCredentialsException) {
-            setResponse(response, "아이디 또는 비밀번호가 일치하지 않습니다.");
+            setResponse(response, authException.getMessage());
         } else if (authException instanceof LockedException) {
             setResponse(response, "사용자 계정이 잠겨 있습니다.");
         } else if (authException instanceof DisabledException) {
@@ -32,7 +33,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         } else {
             setResponse(response, "인증에 실패하였습니다.");
         }
-        //response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
     }
 
     private void setResponse(HttpServletResponse response, String message) throws IOException {

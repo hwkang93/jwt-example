@@ -61,11 +61,12 @@ public class SecurityConfig {
     };
 
     //TODO 실제로 필요한지 확인해봐야 함
+    /*
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
+    */
     /**
      * AuthenticationManager 의 구현체로 ApiAuthenticationProvider 클래스 등록
      *
@@ -75,9 +76,7 @@ public class SecurityConfig {
      */
     @Bean
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder =
-                http.getSharedObject(AuthenticationManagerBuilder.class);
-
+        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.authenticationProvider(apiAuthenticationProvider);
 
         return authenticationManagerBuilder.build();
