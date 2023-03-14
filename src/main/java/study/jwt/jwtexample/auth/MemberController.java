@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
     private final MemberService memberService;
 
-    @ApiOperation(value = "내 정보 조회")
+    @ApiOperation(value = "내 정보 조회", notes = "HELLO")
     @GetMapping("/me")
     @ResponseBody
     public ResponseEntity<MemberResponseDto> getMyMemberInfo() {
