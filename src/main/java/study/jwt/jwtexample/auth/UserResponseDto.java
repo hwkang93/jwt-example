@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserResponseDto {
-    private String email;
+    private String userId;
     private String apiKey;
 
     public static UserResponseDto of(User user) {
-        return new UserResponseDto(user.getEmail(), user.getApiKey());
+        return new UserResponseDto(user.getUserId(), null);
     }
 }

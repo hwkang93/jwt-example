@@ -4,20 +4,32 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
+
 @Getter
 @NoArgsConstructor
+@Entity
+@Table(name = "cmmn_user_info")
 public class User {
 
-    private Long id;
-    private String email;
+    @Id
+    @Column(name = "user_id")
+    private String userId;
+
+    @Column(name = "user_nm")
+    private String userNm;
+
+    @Column(name = "user_password_encpt")
     private String password;
-    private String apiKey;
+
+    @Column(name = "user_sttus_code")
+    private String userSttusCode;
 
     @Builder
-    public User(Long id, String email, String password, String apiKey) {
-        this.id = id;
-        this.email = email;
+    public User(String userId, String userNm, String password, String userSttusCode) {
+        this.userId = userId;
+        this.userNm = userNm;
         this.password = password;
-        this.apiKey = apiKey;
+        this.userSttusCode = userSttusCode;
     }
 }
