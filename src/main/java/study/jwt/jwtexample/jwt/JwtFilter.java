@@ -5,17 +5,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
-import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
@@ -37,11 +34,18 @@ public class JwtFilter extends OncePerRequestFilter {
         // 정상 토큰이면 해당 토큰으로 Authentication 을 가져와서 SecurityContext 에 저장
         if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
             Authentication authentication = tokenProvider.getAuthentication(jwt);
+            String apiKey = this.getApiKey(authentication);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-        }
+            String originalQueryString = request.getQueryString();
+            String newQueryString = originalQueryString != null ? originalQueryString + "&" + "apiKey" + "=" + apiKey : "apiKey" + "=" + apiKey;
 
-        filterChain.doFilter(request, response);
+            logger.info(":: new QueryString : " + newQueryString);
+
+            filterChain.doFilter(new JwtHttpServletRequestWrapper(request, newQueryString), response);
+        } else {
+            filterChain.doFilter(request, response);
+        }
     }
 
     // Request Header 에서 토큰 정보를 꺼내오기
@@ -53,4 +57,28 @@ public class JwtFilter extends OncePerRequestFilter {
 
         return null;
     }
+
+    //
+    private String getApiKey(Authentication authentication) {
+        GrantedAuthority grantedAuthority = authentication.getAuthorities().stream()
+                .findFirst().get();
+
+        return grantedAuthority.getAuthority();
+    }
+
+    private static class JwtHttpServletRequestWrapper extends HttpServletRequestWrapper {
+        private final String queryString;
+
+        public JwtHttpServletRequestWrapper(HttpServletRequest request, String queryString) {
+            super(request);
+            this.queryString = queryString;
+        }
+
+        @Override
+        public String getQueryString() {
+            return queryString;
+        }
+    }
 }
+
+
