@@ -17,13 +17,8 @@ import study.jwt.jwtexample.jwt.TokenRequestDto;
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AuthService authService;
 
-    @ApiOperation(value = "회원가입")
-    @PostMapping("/signup")
-    public ResponseEntity<UserResponseDto> signup(@RequestBody UserRequestDto userRequestDto) {
-        return ResponseEntity.ok(authService.signup(userRequestDto));
-    }
+    private final AuthService authService;
 
     @ApiOperation(value = "로그인")
     @PostMapping("/login")
