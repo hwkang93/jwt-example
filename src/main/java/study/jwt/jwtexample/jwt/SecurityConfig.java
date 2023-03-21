@@ -3,26 +3,25 @@ package study.jwt.jwtexample.jwt;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @RequiredArgsConstructor
 @EnableWebSecurity
-public class SecurityConfig {
+@Configuration
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * JWT Token 발행 / 검증 클래스
      */
     private final TokenProvider tokenProvider;
-
-    /**
-     * 로그인 사용자 인증 클래스
-     */
-    private final ApiAuthenticationProvider apiAuthenticationProvider;
 
     /**
      * 401 처리
@@ -58,30 +57,21 @@ public class SecurityConfig {
             "/favicon.ico"
     };
 
-    /*
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-    */
-
     /**
-     * AuthenticationManager 의 구현체로 ApiAuthenticationProvider 클래스 등록
-     *
-     * @param http
-     * @return
-     * @throws Exception
+     * 로그인 사용자 인증 클래스
      */
     @Bean
-    public AuthenticationManager authManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.authenticationProvider(apiAuthenticationProvider);
-
-        return authenticationManagerBuilder.build();
+    public ApiAuthenticationProvider apiAuthenticationProvider() {
+        return new ApiAuthenticationProvider();
     }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    @Override
+    public void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(apiAuthenticationProvider());
+    }
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
         if(jwtAvailable) {
             // CSRF 설정 Disable
             http.csrf().disable()
@@ -111,9 +101,6 @@ public class SecurityConfig {
             http.csrf().disable()
                 .authorizeRequests().anyRequest().permitAll();
         }
-
-
-        return http.build();
     }
 
 }

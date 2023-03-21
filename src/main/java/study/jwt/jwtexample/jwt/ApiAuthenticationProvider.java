@@ -8,18 +8,19 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 import java.util.Map;
 
-@Component
+//@Component
 public class ApiAuthenticationProvider implements AuthenticationProvider {
 
     @Value("${api.key}")
@@ -28,46 +29,58 @@ public class ApiAuthenticationProvider implements AuthenticationProvider {
     @Value("${jwt.authentication.api.url}")
     private String apiUrl;
 
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    private final HttpHeaders headers = new HttpHeaders();
+
+    public ApiAuthenticationProvider() {
+        headers.setContentType(MediaType.APPLICATION_JSON);
+    }
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
 
-        apiUrl += "?crtfckey="+apiKey;
-        apiUrl += "&userId=" + name;
-        apiUrl += "&password="+password;
+        boolean isValidUser = callAuthenticationApi(name, password);
 
-        boolean callApiResult = false;
-        String callApiResultMessage = "";
+        if(isValidUser) {
+            SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority(apiKey);
+            return new UsernamePasswordAuthenticationToken(name, password, Collections.singleton(grantedAuthority));
+        }
+
+        throw new BadCredentialsException("Invalid username or password");
+    }
+
+    private boolean callAuthenticationApi(String name, String password) throws AuthenticationServiceException {
+        String requestApiUrl = new StringBuilder(apiUrl).append("?")
+                .append("crtfckey=").append(apiKey)
+                .append("&userId=").append(name)
+                .append("&password=").append(password)
+                .toString();
 
         try {
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(apiUrl, requestEntity, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(requestApiUrl, requestEntity, String.class);
             String responseBody = response.getBody();
 
             JsonParser jsonParser = JsonParserFactory.getJsonParser();
             Map<String, Object> responseMap = jsonParser.parseMap(responseBody);
             Object result = responseMap.get("result");
 
-            if(result != null) {
+            if(result != null && result instanceof Map) {
                 Map<String, String> resultMap = (Map<String, String>) result;
-                callApiResult =Boolean.valueOf(String.valueOf(resultMap.get("isValid")));
-                callApiResultMessage = resultMap.get("message");
+                String isValid = String.valueOf(resultMap.get("isValid"));
+                if(isValid != null) {
+                    return Boolean.valueOf(isValid);
+                }
             }
-        } catch (Exception e) {
-            callApiResultMessage = e.getMessage();
+            throw new BadCredentialsException("Failed to authenticate user");
+        } catch (RestClientException e) {
+            throw new AuthenticationServiceException("Failed to call authentication API", e);
+        } catch (IllegalArgumentException e) {
+            throw new AuthenticationServiceException("Invalid response from authentication API", e);
         }
-
-        if(callApiResult) {
-            SimpleGrantedAuthority grantedAuthority = new SimpleGrantedAuthority(apiKey);
-            return new UsernamePasswordAuthenticationToken(name, password, Collections.singleton(grantedAuthority));
-        }
-
-        throw new BadCredentialsException(callApiResultMessage);
     }
 
     @Override
