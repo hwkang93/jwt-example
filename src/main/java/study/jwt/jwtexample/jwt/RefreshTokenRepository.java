@@ -2,7 +2,9 @@ package study.jwt.jwtexample.jwt;
 
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Refresh Token 은, REDIS SESSION 같은 외부 저장소를 이용하는 것이 좋다.

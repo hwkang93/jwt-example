@@ -1,8 +1,8 @@
 package study.jwt.jwtexample.jwt;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
@@ -26,17 +27,16 @@ public class JwtFilter extends OncePerRequestFilter {
     // JWT 토큰의 인증 정보를 현재 쓰레드의 SecurityContext 에 저장하는 역할 수행
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-
         // 1. Request Header 에서 토큰을 꺼냄
         String jwt = resolveToken(request);
 
         // 2. validateToken 으로 토큰 유효성 검사
-        // 정상 토큰이면 해당 토큰으로 Authentication 을 가져와서 SecurityContext 에 저장
         if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+            // 정상 토큰이면 해당 토큰으로 Authentication 을 가져와서 SecurityContext 에 저장
             Authentication authentication = tokenProvider.getAuthentication(jwt);
-            String apiKey = this.getApiKey(authentication);
-
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            String apiKey = this.getApiKey(authentication);
             String originalQueryString = request.getQueryString();
             String newQueryString = originalQueryString != null ? originalQueryString + "&" + "apiKey" + "=" + apiKey : "apiKey" + "=" + apiKey;
 
@@ -58,12 +58,12 @@ public class JwtFilter extends OncePerRequestFilter {
         return null;
     }
 
-    //
-    private String getApiKey(Authentication authentication) {
-        GrantedAuthority grantedAuthority = authentication.getAuthorities().stream()
-                .findFirst().get();
 
-        return grantedAuthority.getAuthority();
+    private String getApiKey(Authentication authentication) {
+        //GrantedAuthority grantedAuthority = authentication.getAuthorities().stream().findFirst().get();
+        //return grantedAuthority.getAuthority();
+
+        return authentication.getAuthorities().toArray()[0].toString();
     }
 
     private static class JwtHttpServletRequestWrapper extends HttpServletRequestWrapper {

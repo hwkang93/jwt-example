@@ -1,4 +1,4 @@
-package study.jwt.jwtexample.jwt;
+package study.jwt.jwtexample.jwt.provider.api;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.json.JsonParser;
@@ -30,7 +30,6 @@ public class ApiAuthenticationProvider implements AuthenticationProvider {
     private String apiUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
-
     private final HttpHeaders headers = new HttpHeaders();
 
     public ApiAuthenticationProvider() {

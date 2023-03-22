@@ -20,6 +20,13 @@ public class UserController {
         return ResponseEntity.ok(userService.getMyInfo());
     }
 
+    @ApiOperation(value = "내 정보 조회(Post)", notes = "HELLO")
+    @PostMapping("/me")
+    @ResponseBody
+    public ResponseEntity<UserResponseDto> getMyInfoPost() {
+        return ResponseEntity.ok(userService.getMyInfo());
+    }
+
     @ApiOperation(value = "email 로 조회")
     @GetMapping("/{email}")
     @ResponseBody

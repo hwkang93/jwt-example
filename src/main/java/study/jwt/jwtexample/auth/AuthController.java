@@ -35,7 +35,6 @@ public class AuthController {
     @ApiOperation(value = "비밀번호 암호화하기 (BCryptPasswordEncoder 테스트용)")
     @GetMapping("/encrypt/{password}")
     public ResponseEntity<String> encryptPassword(@PathVariable String password) {
-
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encodedPassword = encoder.encode(password);
 

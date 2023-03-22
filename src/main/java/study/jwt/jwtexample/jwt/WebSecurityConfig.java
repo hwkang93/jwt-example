@@ -5,18 +5,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import study.jwt.jwtexample.jwt.provider.api.ApiAuthenticationProvider;
 
 @RequiredArgsConstructor
 @EnableWebSecurity
 @Configuration
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * JWT Token 발행 / 검증 클래스
@@ -57,17 +57,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/favicon.ico"
     };
 
+    @Bean
+    public JwtFilter jwtFilter() {
+        return new JwtFilter(tokenProvider);
+    }
+
+    @Override
+    public void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(apiAuthenticationProvider());
+    }
+
+    //AuthenticationManagerBuilder 를 빌드하여 AuthenticationManager 를 Bean 객체로 만든다.
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
     /**
      * 로그인 사용자 인증 클래스
      */
     @Bean
     public ApiAuthenticationProvider apiAuthenticationProvider() {
         return new ApiAuthenticationProvider();
-    }
-
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(apiAuthenticationProvider());
     }
 
     @Override
@@ -96,7 +108,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .authorizeRequests(authorize -> authorize
                             .antMatchers(PERMIT_URL_ARRAY).permitAll().anyRequest().authenticated()
                     )
-                    .apply(new JwtSecurityConfig(tokenProvider));
+                    .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
         } else {
             http.csrf().disable()
                 .authorizeRequests().anyRequest().permitAll();
