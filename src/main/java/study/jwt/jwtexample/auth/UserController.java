@@ -13,20 +13,6 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
-    @ApiOperation(value = "내 정보 조회", notes = "HELLO")
-    @GetMapping("/me")
-    @ResponseBody
-    public ResponseEntity<UserResponseDto> getMyInfo() {
-        return ResponseEntity.ok(userService.getMyInfo());
-    }
-
-    @ApiOperation(value = "내 정보 조회(Post)", notes = "HELLO")
-    @PostMapping("/me")
-    @ResponseBody
-    public ResponseEntity<UserResponseDto> getMyInfoPost() {
-        return ResponseEntity.ok(userService.getMyInfo());
-    }
-
     @ApiOperation(value = "email 로 조회")
     @GetMapping("/{email}")
     @ResponseBody

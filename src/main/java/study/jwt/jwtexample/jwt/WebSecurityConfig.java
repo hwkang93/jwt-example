@@ -53,7 +53,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             //"/auth",
             "/auth/**",
             "/",
-            "/login",
             "/favicon.ico"
     };
 
